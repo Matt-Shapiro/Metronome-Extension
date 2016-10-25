@@ -2,7 +2,7 @@ var loadedSong;
 var i;
 var interval;
 var suggestions;
-var bpm = 120;
+var bpm = 120; //default BPM
 var numFavorites = 0;
 var favorites = [];
 var currentlyPlaying = false;
@@ -42,9 +42,8 @@ function isolateTable(responseText){
 	responseText = responseText.substring(tableStartIndex, tableEndIndex);
 	console.log(responseText);
 	
-	
-	//remove download tag
-	//25 songs in table
+	//this loop cuts out a space in the <download> tag that causes the xml file to crash
+	//25 songs in each table page
 	for (k = 0; k < 25; k++){
 		for (i = downloadTagEnd; i < responseText.length; i++){
 			if (responseText[i] === 'd' && responseText[i+1] === 'o' && responseText[i+2] === 'w' && responseText[i+3] === 'n'){
@@ -64,16 +63,14 @@ function isolateTable(responseText){
 	}
 	return responseText;
 }
+//stores song so that when extension is reloaded songs are still in favorites bar
 function storeSong(song){
 	var firstTime = true;
 	chrome.storage.sync.getBytesInUse(function(result){
-		console.log('Bytes: ' + result);
 		if (result>0){
-			console.log('Bytes > 0');
 			firstTime = false;
 		}
 		if (firstTime){
-			console.log("firstTime");
 			favorites = new Array();
 			numFavorites = 0;	
 			favorites[numFavorites] = song;
@@ -82,20 +79,15 @@ function storeSong(song){
 				'songs': favorites,
 				'numSongs': numFavorites
 			});
-		} else {
-			console.log("NOT firstTime");
+		} else { // if not the first song in the array, have to fetch array, update favorites array, add the new song to store, then store favorites array in storage
 			chrome.storage.sync.get('songs', function(result){
-				console.log("result length: " + result.songs.length);
 				for (i = 0; i < result.songs.length; i++){
 					favorites[i] = result.songs[i];
-					console.log("favorites[i]: " + favorites[i]);
 				}
-				console.log('songs/favorites: ' + result.songs);
+
 				chrome.storage.sync.get('numSongs', function(result){
 					numFavorites = result.numSongs;
-					console.log('numSongs/numFavorites: ' + numFavorites);
 					favorites[numFavorites] = song;
-					console.log('favorites[numFavorites]: ' + favorites[numFavorites]);
 					numFavorites++;
 					chrome.storage.sync.set({
 						'songs': favorites,
@@ -105,6 +97,7 @@ function storeSong(song){
 			});
 		}
 	});
+	//add song to the favorites bar
 	$('#favoritesBar').append("<div class = favorite></div>");
 	$('#favoritesBar').children().last().append("<button class = edit>edit</button>");
 	$('#favoritesBar').children().last().append('<p id = title; display = inline-block>Title: ' + song.title + '</p>');
@@ -320,6 +313,7 @@ $(function(){
 		$('#bpm').html(bpm);
 	});
 	$('#playButton').click(startStop);
+	//Must use AJAX so that the submit button does not reload the page, which throws out the search string
 	$('#wSearch').submit(function(){
 		var http = new XMLHttpRequest();
 		http.open("POST", "chrome-extension://dmihbmpfogdldmeddpfpfnfcbjinglcp/mn.html", true);
