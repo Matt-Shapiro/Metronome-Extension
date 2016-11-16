@@ -6,4 +6,4 @@ Search suggestion bar does not reset when search for songs
 
 Song information div is off center for certain songs
 
-Search takes a few seconds to work because of a nasty work-around I made due to the bpmdatabase.com giving corrupt xml documents
+Search takes a few seconds to work because of a method I use to parse the corrupt xml Document that bpmdatabase gives
