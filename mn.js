@@ -1,7 +1,6 @@
 var loadedSong;
-var i;
-var interval;
-var suggestions;
+var i;			//setInterval() variable. Used to start the metronome with setInterval() and to stop the metronome with clearInterval(i)
+var interval;		//This is a number which represents the time between each metronome tick
 var bpm = 120; //default BPM
 var numFavorites = 0;	//value is updated after favorite songs are loaded from the google chrome storage api
 var favorites = [];	//array is filled after favorite songs are loaded from storage
