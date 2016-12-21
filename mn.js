@@ -1,4 +1,4 @@
-var loadedSong;
+var loadedSong;		//current song loaded into the metronome
 var i;			//setInterval() variable. Used to start the metronome with setInterval() and to stop the metronome with clearInterval(i)
 var interval;		//This is a number which represents the time between each metronome tick
 var bpm = 120; //default BPM
