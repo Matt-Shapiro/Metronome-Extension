@@ -3,8 +3,8 @@ var i;
 var interval;
 var suggestions;
 var bpm = 120; //default BPM
-var numFavorites = 0;
-var favorites = [];
+var numFavorites = 0;	//value is updated after favorite songs are loaded from the google chrome storage api
+var favorites = [];	//array is filled after favorite songs are loaded from storage
 var currentlyPlaying = false;
 
 function song(t, a, b, tst, tsb){
@@ -257,8 +257,7 @@ function startStop(){
 		clearInterval(i);
 	}
 }
-// minimize search suggestions, make it so that + and - don't highlight, center information text, suggestions doesnt empty after some
-//new searches
+
 $(function(){
 	var mnh = document.getElementById("mnh");
 	var mnl = document.getElementById("mnl");
