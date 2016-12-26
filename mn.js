@@ -1,11 +1,19 @@
-var loadedSong;		//current song loaded into the metronome
-var i;			//setInterval() variable. Used to start the metronome with setInterval() and to stop the metronome with clearInterval(i)
-var interval;		//This is a number which represents the time between each metronome tick
-var bpm = 120; //default BPM
-var numFavorites = 0;	//value is updated after favorite songs are loaded from the google chrome storage api
-var favorites = [];	//array is filled after favorite songs are loaded from storage
-var currentlyPlaying = false;
-
+var loadedSong;
+myApp = {
+	metronomeSettings:{
+		i: setInterval(function(){		//an interval object used to clear and set the interval which plays the metronome sound file
+			mnh.play();
+			}, 60000),					
+		interval: 500,				//The integer variable which determines how many milliseconds between each tick... 60000 milliseconds per minute
+									//equivalent to (milliseconds / bpm). The default is 60000/120 = 500
+		bpm: 120,					//used for the bpm display and to calculate the interval. Default is 120
+		currentlyPlaying: false		//boolean used to differentiate which action to take on click for multiple functions. 
+	},
+	favoriteSettings:{
+		numFavorites: 0,	//0 until loadSongs is called upon launch
+		favorites: [],		//Empty array until loadSongs is called upon launch
+	}
+}
 function song(t, a, b, tst, tsb){
 	this.title = t;
 	this.artist = a;
@@ -15,13 +23,12 @@ function song(t, a, b, tst, tsb){
 }
 function registerSong(song){
 	loadedSong = song;
-	bpm = song.bpm;
-	$('#bpm').html(bpm);
+	myApp.metronomeSettings.bpm = song.bpm;
+	$('#bpm').html(myApp.metronomeSettings.bpm);
 	$('#informationList').empty();
-	$('#informationList').append('<li>Song: ' + loadedSong.title + '</li>');
-	$('#informationList').append('<li>Artist: ' + loadedSong.artist + '</li>');
-	$('#informationList').append('<li>BPM: ' + loadedSong.bpm + '</li>');
-	$('#informationList').append('<li>Meter: ' + loadedSong.timeSignatureTop + '/' + loadedSong.timeSignatureBottom + '</li>');
+	$('#informationList').append('<li>Song: ' + song.title + '</li>');
+	$('#informationList').append('<li>Artist: ' + song.artist + '</li>');
+	$('#informationList').append('<li>BPM: ' + song.timeSignatureTop + '/' + song.timeSignatureBottom + '</li>');
 	if (!$('#saveSong').hasClass('canAdd'))
 		$('#saveSong').addClass('canAdd');
 }
@@ -41,8 +48,9 @@ function isolateTable(responseText){
 	responseText = responseText.substring(tableStartIndex, tableEndIndex);
 	console.log(responseText);
 	
-	//this loop cuts out a space in the <download> tag that causes the xml file to crash
-	//25 songs in each table page
+	
+	//remove download tag
+	//25 songs in table
 	for (k = 0; k < 25; k++){
 		for (i = downloadTagEnd; i < responseText.length; i++){
 			if (responseText[i] === 'd' && responseText[i+1] === 'o' && responseText[i+2] === 'w' && responseText[i+3] === 'n'){
@@ -62,41 +70,47 @@ function isolateTable(responseText){
 	}
 	return responseText;
 }
-//stores song so that when extension is reloaded songs are still in favorites bar
 function storeSong(song){
 	var firstTime = true;
 	chrome.storage.sync.getBytesInUse(function(result){
+		console.log('Bytes: ' + result);
 		if (result>0){
+			console.log('Bytes > 0');
 			firstTime = false;
 		}
 		if (firstTime){
-			favorites = new Array();
-			numFavorites = 0;	
-			favorites[numFavorites] = song;
-			numFavorites++;
+			console.log("firstTime");
+			myApp.favoriteSettings.favorites = new Array();
+			myApp.favoriteSettings.numFavorites = 0;	
+			myApp.favoriteSettings.favorites[myApp.favoriteSettings.numFavorites] = song;
+			myApp.favoriteSettings.numFavorites++;
 			chrome.storage.sync.set({
-				'songs': favorites,
-				'numSongs': numFavorites
+				'songs': myApp.favoriteSettings.favorites,
+				'numSongs': myApp.favoriteSettings.numFavorites
 			});
-		} else { // if not the first song in the array, have to fetch array, update favorites array, add the new song to store, then store favorites array in storage
+		} else {
+			console.log("NOT firstTime");
 			chrome.storage.sync.get('songs', function(result){
+				console.log("result length: " + result.songs.length);
 				for (i = 0; i < result.songs.length; i++){
-					favorites[i] = result.songs[i];
+					myApp.favoriteSettings.favorites[i] = result.songs[i];
+					console.log("favorites[i]: " + myApp.favoriteSettings.favorites[i]);
 				}
-
+				console.log('songs/favorites: ' + result.songs);
 				chrome.storage.sync.get('numSongs', function(result){
-					numFavorites = result.numSongs;
-					favorites[numFavorites] = song;
-					numFavorites++;
+					myApp.favoriteSettings.numFavorites = result.numSongs;
+					console.log('numSongs/numFavorites: ' + myApp.favoriteSettings.numFavorites);
+					myApp.favoriteSettings.favorites[myApp.favoriteSettings.numFavorites] = song;
+					console.log('favorites[numFavorites]: ' + myApp.favoriteSettings.favorites[myApp.favoriteSettings.numFavorites]);
+					myApp.favoriteSettings.numFavorites++;
 					chrome.storage.sync.set({
-						'songs': favorites,
-						'numSongs': numFavorites
+						'songs': myApp.favoriteSettings.favorites,
+						'numSongs': myApp.favoriteSettings.numFavorites
 					});
 				});
 			});
 		}
 	});
-	//add song to the favorites bar
 	$('#favoritesBar').append("<div class = favorite></div>");
 	$('#favoritesBar').children().last().append("<button class = edit>edit</button>");
 	$('#favoritesBar').children().last().append('<p id = title; display = inline-block>Title: ' + song.title + '</p>');
@@ -108,18 +122,18 @@ function storeSong(song){
 };
 function loadSongs(){	
 	chrome.storage.sync.get('numSongs', function(result){
-		numFavorites = result.numSongs;
+		myApp.favoriteSettings.numFavorites = result.numSongs;
 		chrome.storage.sync.get('songs', function(result){
-			favorites = result.songs;
-			for (i = 0; i < numFavorites; i++){
+			myApp.favoriteSettings.favorites = result.songs;
+			for (i = 0; i < myApp.favoriteSettings.numFavorites; i++){
 				$('#favoritesBar').append("<div class = favorite></div>");
 				$('#favoritesBar').children().last().append("<button class = edit>edit</button>");
-				$('#favoritesBar').children().last().append('<p id = title; display = inline-block>Title: ' + favorites[i].title + '</p>');
+				$('#favoritesBar').children().last().append('<p id = title; display = inline-block>Title: ' + myApp.favoriteSettings.favorites[i].title + '</p>');
 				$('#favoritesBar').children().last().append("<button class = remove>remove</button>");
-				$('#favoritesBar').children().last().append('<p>Artist: ' + favorites[i].artist + '</p>');
+				$('#favoritesBar').children().last().append('<p>Artist: ' + myApp.favoriteSettings.favorites[i].artist + '</p>');
 				$('#favoritesBar').children().last().append("<button class = load>load</button>");
-				$('#favoritesBar').children().last().append('<p>BPM: ' + favorites[i].bpm + '</p>');
-				$('#favoritesBar').children().last().append('<p>Meter: ' + favorites[i].timeSignatureTop + '/' + favorites[i].timeSignatureBottom + '</p>');
+				$('#favoritesBar').children().last().append('<p>BPM: ' + myApp.favoriteSettings.favorites[i].bpm + '</p>');
+				$('#favoritesBar').children().last().append('<p>Meter: ' + myApp.favoriteSettings.favorites[i].timeSignatureTop + '/' + myApp.favoriteSettings.favorites[i].timeSignatureBottom + '</p>');
 			}
 		});
 	});
@@ -143,7 +157,7 @@ function loadSongs(){
 		});
 	});
 	$('#favoritesBar').on('click', '.load', function(){
-		if (currentlyPlaying){
+		if (myApp.metronomeSettings.currentlyPlaying){
 			startStop();
 		}
 		var t = $(this).parent().find('p')[0].innerHTML;
@@ -180,13 +194,13 @@ function loadSongs(){
 		t = t.substring(space);
 		$(this).parent().remove();
 		chrome.storage.sync.get('songs', function(result){
-			favorites = result.songs
-			for (i = 0; i < favorites.length; i++){
-				if (t===favorites[i].title){
-					favorites.splice(i,1);
+			myApp.favoriteSettings.favorites = result.songs
+			for (i = 0; i < myApp.favoriteSettings.favorites.length; i++){
+				if (t===myApp.favoriteSettings.favorites[i].title){
+					myApp.favoriteSettings.favorites.splice(i,1);
 					chrome.storage.sync.set({
-							'songs': favorites,
-							'numSongs': favorites.length
+							'songs': myApp.favoriteSettings.favorites,
+							'numSongs': myApp.favoriteSettings.favorites.length
 						}
 					);
 				}
@@ -215,7 +229,6 @@ function retrieveSong(name, suggestions) {
 			}
 			
 			if (titles.length > 1){
-				console.log("more than one search result");
 				if (!$('#searchSuggestions').hasClass('visible'))
 					$('#searchSuggestions').addClass('visible');
 				else {
@@ -240,33 +253,32 @@ function retrieveSong(name, suggestions) {
     xhr.send();
 }    
 function startStop(){
-	if (!currentlyPlaying){
-		clearInterval(i);
-		currentlyPlaying = true;
+	if (!myApp.metronomeSettings.currentlyPlaying){
+		clearInterval(myApp.metronomeSettings.i);
+		myApp.metronomeSettings.currentlyPlaying = true;
 		$('#start').html("Stop");
 		//60000 miliseconds per minute
-		interval = (60000/bpm);
-		i = setInterval(function(){
+		myApp.metronomeSettings.interval = (60000/myApp.metronomeSettings.bpm);
+		myApp.metronomeSettings.i = setInterval(function(){
 			mnh.play();
-			}, interval);
+			}, myApp.metronomeSettings.interval);
 	} else {
 		console.log("registered");
-		currentlyPlaying = false;
+		myApp.metronomeSettings.currentlyPlaying = false;
 		$('#start').html("Start");
-		clearInterval(i);
+		clearInterval(myApp.metronomeSettings.i);
 	}
 }
-
 $(function(){
 	var mnh = document.getElementById("mnh");
 	var mnl = document.getElementById("mnl");
 	suggestions = new Array();
-	bpm = 120;
+	myApp.metronomeSettings.bpm = 120;
 	//chrome.storage.sync.get('b', function(result){
 	//	bpm = result.b;
 	//});
 	loadSongs();
-	$('#display').append('<h2 id = "bpm">' + bpm + '</h2>');
+	$('#display').append('<h2 id = "bpm">' + myApp.metronomeSettings.bpm + '</h2>');
 	$('#favoritesButton').click(function(){
 		$('#favoritesBar').toggleClass('visible');
 	});
@@ -303,15 +315,14 @@ $(function(){
 		$(this).css('backgroundColor', '#C70039');
 	});
 	$('#minus').click(function(){
-		bpm--;
-		$('#bpm').html(bpm);
+		myApp.metronomeSettings.bpm--;
+		$('#bpm').html(myApp.metronomeSettings.bpm);
 	});
 	$('#plus').click(function(){
-		bpm++;
-		$('#bpm').html(bpm);
+		myApp.metronomeSettings.bpm++;
+		$('#bpm').html(myApp.metronomeSettings.bpm);
 	});
 	$('#playButton').click(startStop);
-	//Must use AJAX so that the submit button does not reload the page, which throws out the search string
 	$('#wSearch').submit(function(){
 		var http = new XMLHttpRequest();
 		http.open("POST", "chrome-extension://dmihbmpfogdldmeddpfpfnfcbjinglcp/mn.html", true);
@@ -324,4 +335,5 @@ $(function(){
 		return false;
 	});
 });
+
 
