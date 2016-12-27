@@ -227,7 +227,11 @@ function loadSongs(){
 		});
 	});
 }
-
+/*
+	open xmlHttpRequest by opening a get request for the url with the searched-for song's name in the url search parameter
+	suggestions array is the array of songs that show up in the website's song table for that song
+	Create a list of divs for users to click on correct result
+*/
 function retrieveSong(name, suggestions) {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "http://www.bpmdatabase.com/music/search/?q=" + name, true);
@@ -271,6 +275,16 @@ function retrieveSong(name, suggestions) {
 	};
     xhr.send();
 }    
+/*
+	Called upon clicking the start metronome button
+	Two functionalities based on currentlyPlaying variable...
+	CurrentlyPlaying == true: 
+		clear interval; This clears the interval that specifies when to play the sound file so that it never plays
+		adjust 'start' text and currentlyPlaying = false
+	CurrentlyPlaying == false
+		Start interval with bpm specified in the myApp.metronomeSettings.bpm setting. This starts the metronome clicking
+		adjust 'stop' text and currentlyPlaying = true
+*/
 function startStop(){
 	if (!myApp.metronomeSettings.currentlyPlaying){
 		clearInterval(myApp.metronomeSettings.i);
