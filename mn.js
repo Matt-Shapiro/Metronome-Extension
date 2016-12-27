@@ -21,6 +21,10 @@ function song(t, a, b, tst, tsb){
 	this.timeSignatureTop = tst;
 	this.timeSignatureBottom = tsb;
 }
+
+/*
+	Register selected song in the information div under the metronome and set loadedSong to selected song
+*/
 function registerSong(song){
 	loadedSong = song;
 	myApp.metronomeSettings.bpm = song.bpm;
@@ -32,6 +36,11 @@ function registerSong(song){
 	if (!$('#saveSong').hasClass('canAdd'))
 		$('#saveSong').addClass('canAdd');
 }
+/*
+	Parse xmlDoc into section that only includes the song table on the search page.
+	Makes it easier to create search list and avoids any xml errors that may stem from 
+	future changes to the website's html 
+*/
 function isolateTable(responseText){
 	var tableStartIndex;
 	var tableEndIndex;
@@ -70,6 +79,12 @@ function isolateTable(responseText){
 	}
 	return responseText;
 }
+/*
+	Store loadedSong into the favorites array and into google chrome's storage API
+	Seperates functionality into logic for first time storage and otherwise...
+	first time: no need to get existing favorites array in storage. Create new favorites array with loadedSong and store it
+	not first time: load existing favorites array and add loaded song to the end. Then store updated array  
+*/
 function storeSong(song){
 	var firstTime = true;
 	chrome.storage.sync.getBytesInUse(function(result){
@@ -120,6 +135,10 @@ function storeSong(song){
 	$('#favoritesBar').children().last().append('<p>BPM: ' + song.bpm + '</p>');
 	$('#favoritesBar').children().last().append('<p>Meter: ' + song.timeSignatureTop + '/' + song.timeSignatureBottom + '</p>');
 };
+/*
+	Get favorites array from storage api and upload each song into the favorites bar in it's own div
+	Create click events for each div's functionality buttons
+*/
 function loadSongs(){	
 	chrome.storage.sync.get('numSongs', function(result){
 		myApp.favoriteSettings.numFavorites = result.numSongs;
