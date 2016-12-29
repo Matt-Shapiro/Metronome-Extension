@@ -1,13 +1,13 @@
 var loadedSong;
 myApp = {
 	metronomeSettings:{
-		i: setInterval(function(){		//an interval object used to clear and set the interval which plays the metronome sound file
-			mnh.play();
+		i: setInterval(function(){		//an interval object used to clear and set the interval which plays the 
+			mnh.play();			//metronome sound file
 			}, 60000),					
 		interval: 500,				//The integer variable which determines how many milliseconds between each tick... 60000 milliseconds per minute
 									//equivalent to (milliseconds / bpm). The default is 60000/120 = 500
 		bpm: 120,					//used for the bpm display and to calculate the interval. Default is 120
-		currentlyPlaying: false		//boolean used to differentiate which action to take on click for multiple functions. 
+		currentlyPlaying: false		//boolean used to differentiate which action to take on click for the stop/start button. 
 	},
 	favoriteSettings:{
 		numFavorites: 0,	//0 until loadSongs is called upon launch
@@ -233,18 +233,18 @@ function loadSongs(){
 	Create a list of divs for users to click on correct result
 */
 function retrieveSong(name, suggestions) {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://www.bpmdatabase.com/music/search/?q=" + name, true);
+    var xhr = new XMLHttpRequest();			//xmlhttpRequest
+    xhr.open("GET", "http://www.bpmdatabase.com/music/search/?q=" + name, true);	//follows the url search formula for bpmdatabase
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4 && xhr.status === 200) {
-			var rt = xhr.responseText;
+			var rt = xhr.responseText;		//parse to string, then to the xmldoc of the song table
 			rt = isolateTable(rt);
-			console.log(rt);
+			console.log(rt);	
 			var parser = new DOMParser();
-			var xmlDoc = parser.parseFromString(rt, "application/xml");
+			var xmlDoc = parser.parseFromString(rt, "application/xml");	
 			console.log(xmlDoc);
 			
-			var titles = xmlDoc.getElementsByClassName("title");
+			var titles = xmlDoc.getElementsByClassName("title");	//use titles to create list of suggestions for user to select correct song
 			for (i = 0; i < titles.length; i++){
 				suggestions[i] = new song(titles[i].innerHTML,
 								xmlDoc.getElementsByClassName("artist")[i].firstChild.innerHTML,
@@ -260,7 +260,7 @@ function retrieveSong(name, suggestions) {
 				for (i = 0; i < titles.length; i++){
 					$('#searchSuggestions').append('<div class = suggestion>' + titles[i].innerHTML + '</div>')
 				}
-			} else {
+			} else {				//if there is only one song suggestion, just immediately load that one
 				var s = suggestions[0];
 				registerSong(s);
 			}
@@ -356,16 +356,16 @@ $(function(){
 		$('#bpm').html(myApp.metronomeSettings.bpm);
 	});
 	$('#playButton').click(startStop);
-	$('#wSearch').submit(function(){
-		var http = new XMLHttpRequest();
-		http.open("POST", "chrome-extension://dmihbmpfogdldmeddpfpfnfcbjinglcp/mn.html", true);
+	$('#wSearch').submit(function(){	//must use AJAX so that page does not reload upon submit, which loses the song name
+		var http = new XMLHttpRequest();		 
+		http.open("POST", "chrome-extension://dmihbmpfogdldmeddpfpfnfcbjinglcp/mn.html", true);	//Post request for this page. 
 		http.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-		var name = document.getElementById("name").value; 
+		var name = document.getElementById("name").value; 		
 		http.onload = function(){
 			retrieveSong(name, suggestions);
 		}
-		http.send(name);
-		return false;
+		http.send(name);					//send searched song name to the retrieve song function
+		return false;		//must return false to prevent page from reloading
 	});
 });
 
