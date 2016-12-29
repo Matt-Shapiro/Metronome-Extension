@@ -5,7 +5,7 @@ myApp = {
 			mnh.play();			//metronome sound file
 			}, 60000),					
 		interval: 500,				//The integer variable which determines how many milliseconds between each tick... 60000 milliseconds per minute
-									//equivalent to (milliseconds / bpm). The default is 60000/120 = 500
+								//equivalent to (milliseconds / bpm). The default is 60000/120 = 500
 		bpm: 120,					//used for the bpm display and to calculate the interval. Default is 120
 		currentlyPlaying: false		//boolean used to differentiate which action to take on click for the stop/start button. 
 	},
