@@ -1,4 +1,5 @@
 # Metronome-Extension
+In progress...
 
 Bugs to fix:
 
