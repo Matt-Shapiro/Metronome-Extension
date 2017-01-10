@@ -89,11 +89,11 @@ function storeSong(song){
 	var firstTime = true;
 	chrome.storage.sync.getBytesInUse(function(result){
 		console.log('Bytes: ' + result);
-		if (result>0){
+		if (result>0){					//if storage is empty
 			console.log('Bytes > 0');
 			firstTime = false;
 		}
-		if (firstTime){
+		if (firstTime){					//if storage empty create new array with song and store it
 			console.log("firstTime");
 			myApp.favoriteSettings.favorites = new Array();
 			myApp.favoriteSettings.numFavorites = 0;	
@@ -103,11 +103,11 @@ function storeSong(song){
 				'songs': myApp.favoriteSettings.favorites,
 				'numSongs': myApp.favoriteSettings.numFavorites
 			});
-		} else {
+		} else {					//get storage array and add song to the end of it
 			console.log("NOT firstTime");
 			chrome.storage.sync.get('songs', function(result){
 				console.log("result length: " + result.songs.length);
-				for (i = 0; i < result.songs.length; i++){
+				for (i = 0; i < result.songs.length; i++){				//copy result to favorites array
 					myApp.favoriteSettings.favorites[i] = result.songs[i];
 					console.log("favorites[i]: " + myApp.favoriteSettings.favorites[i]);
 				}
@@ -125,7 +125,7 @@ function storeSong(song){
 				});
 			});
 		}
-	});
+	});								//add div to the favorites bar
 	$('#favoritesBar').append("<div class = favorite></div>");
 	$('#favoritesBar').children().last().append("<button class = edit>edit</button>");
 	$('#favoritesBar').children().last().append('<p id = title; display = inline-block>Title: ' + song.title + '</p>');
@@ -175,7 +175,7 @@ function loadSongs(){
 			return false;
 		});
 	});
-	$('#favoritesBar').on('click', '.load', function(){
+	$('#favoritesBar').on('click', '.load', function(){	//must add click event in this function because these divs don't exist prior
 		if (myApp.metronomeSettings.currentlyPlaying){
 			startStop();
 		}
