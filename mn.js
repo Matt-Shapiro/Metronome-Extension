@@ -36,49 +36,7 @@ function registerSong(song){
 	if (!$('#saveSong').hasClass('canAdd'))
 		$('#saveSong').addClass('canAdd');
 }
-/*
-	Parse xmlDoc into section that only includes the song table on the search page.
-	Makes it easier to create search list and avoids any xml errors that may stem from 
-	future changes to the website's html 
-*/
-function isolateTable(responseText){
-	var tableStartIndex;
-	var tableEndIndex;
-	var downloadTagStart;
-	var downloadTagEnd = 0;
-	for (i = 0; i < responseText.length; i++){
-		if(responseText[i] === '<' && responseText[i+1] === 't' && responseText[i+2] === 'b')
-			tableStartIndex = i; 
-	}
-	for (i = 0; i < responseText.length; i++){
-		if(responseText[i] === '/' && responseText[i+1] === 't' && responseText[i+2] === 'b')
-			tableEndIndex = i+7; 
-	}
-	responseText = responseText.substring(tableStartIndex, tableEndIndex);
-	console.log(responseText);
-	
-	
-	//remove download tag
-	//25 songs in table
-	for (k = 0; k < 25; k++){
-		for (i = downloadTagEnd; i < responseText.length; i++){
-			if (responseText[i] === 'd' && responseText[i+1] === 'o' && responseText[i+2] === 'w' && responseText[i+3] === 'n'){
-				downloadTagStart = i-11;
-				for (j = i; i < responseText.length; j++){
-					if (responseText[j] === '<' && responseText[j+1] === '/' && responseText[j+2] === 't' && responseText[j+3] === 'd'){
-						downloadTagEnd = j + 4;
-						break;
-					}
-				}
-				break;
-			}	
-		}
-		console.log("start: " + downloadTagStart);
-		console.log("end: " + downloadTagEnd);
-		responseText = responseText.substring(0, downloadTagStart) + responseText.substring(downloadTagEnd);
-	}
-	return responseText;
-}
+
 /*
 	Store loadedSong into the favorites array and into google chrome's storage API
 	Seperates functionality into logic for first time storage and otherwise...
@@ -301,6 +259,49 @@ function startStop(){
 		$('#start').html("Start");
 		clearInterval(myApp.metronomeSettings.i);
 	}
+}
+/*
+	Parse xmlDoc into section that only includes the song table on the search page.
+	Makes it easier to create search list and avoids any xml errors that may stem from 
+	future changes to the website's html 
+*/
+function isolateTable(responseText){
+	var tableStartIndex;
+	var tableEndIndex;
+	var downloadTagStart;
+	var downloadTagEnd = 0;
+	for (i = 0; i < responseText.length; i++){
+		if(responseText[i] === '<' && responseText[i+1] === 't' && responseText[i+2] === 'b')
+			tableStartIndex = i; 
+	}
+	for (i = 0; i < responseText.length; i++){
+		if(responseText[i] === '/' && responseText[i+1] === 't' && responseText[i+2] === 'b')
+			tableEndIndex = i+7; 
+	}
+	responseText = responseText.substring(tableStartIndex, tableEndIndex);
+	console.log(responseText);
+	
+	
+	//remove download tag
+	//25 songs in table
+	for (k = 0; k < 25; k++){
+		for (i = downloadTagEnd; i < responseText.length; i++){
+			if (responseText[i] === 'd' && responseText[i+1] === 'o' && responseText[i+2] === 'w' && responseText[i+3] === 'n'){
+				downloadTagStart = i-11;
+				for (j = i; i < responseText.length; j++){
+					if (responseText[j] === '<' && responseText[j+1] === '/' && responseText[j+2] === 't' && responseText[j+3] === 'd'){
+						downloadTagEnd = j + 4;
+						break;
+					}
+				}
+				break;
+			}	
+		}
+		console.log("start: " + downloadTagStart);
+		console.log("end: " + downloadTagEnd);
+		responseText = responseText.substring(0, downloadTagStart) + responseText.substring(downloadTagEnd);
+	}
+	return responseText;
 }
 $(function(){
 	var mnh = document.getElementById("mnh");
